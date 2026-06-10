@@ -1,3 +1,5 @@
+from typing import Literal
+
 import numpy as np
 import rpy2.robjects as ro
 from rpy2.robjects import StrVector, pandas2ri
@@ -7,12 +9,14 @@ from ._r import ibex_r
 
 def ibex_matrix(
     sequences: list[str],
-    chain: str = "Heavy",
-    method: str = "geometric",
-    encoder_model: str = "VAE",
-    encoder_input: str = "atchleyFactors",
+    chain: Literal["Heavy", "Light"] = "Heavy",
+    method: Literal["encoder", "geometric"] = "encoder",
+    encoder_model: Literal["CNN", "VAE", "CNN.EXP", "VAE.EXP"] = "VAE",
+    encoder_input: Literal[
+        "atchleyFactors", "crucianiProperties", "kideraFactors", "MSWHIM", "tScales", "OHE"
+    ] = "atchleyFactors",
     geometric_theta: float = 3.14159265,
-    species: str = "Human",
+    species: Literal["Human", "Mouse"] = "Human",
     verbose: bool = False,
 ) -> np.ndarray:
     """Embed CDR3 sequences using the Ibex R package.

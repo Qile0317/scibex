@@ -13,11 +13,13 @@ if TYPE_CHECKING:
 def ibex(
     adata: AnnData | MuData,
     chain: Literal["Heavy", "Light"] = "Heavy",
-    method: Literal["encoder", "geometric"] = "geometric",
+    method: Literal["encoder", "geometric"] = "encoder",
     encoder_model: Literal["CNN", "VAE", "CNN.EXP", "VAE.EXP"] = "VAE",
-    encoder_input: str = "atchleyFactors",
+    encoder_input: Literal[
+        "atchleyFactors", "crucianiProperties", "kideraFactors", "MSWHIM", "tScales", "OHE"
+    ] = "atchleyFactors",
     geometric_theta: float = 3.14159265,
-    species: str = "Human",
+    species: Literal["Human", "Mouse"] = "Human",
     verbose: bool = False,
     *,
     airr_mod: str = "airr",

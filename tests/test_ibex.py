@@ -24,6 +24,21 @@ def require_ibex_r():
         pytest.skip("Ibex R package not installed")
 
 
+@pytest.fixture(scope="session")
+def require_keras(require_ibex_r):
+    """Skip if the Ibex basilisk environment cannot import keras.
+
+    The encoder uses basiliskRun(env = IbexEnv, ...) which manages its own
+    Python environment — plain reticulate::import() would test the wrong thing.
+    """
+    import rpy2.robjects as ro
+
+    try:
+        ro.r('basilisk::basiliskRun(env = Ibex:::IbexEnv, fun = function() reticulate::import("keras"))')
+    except Exception:
+        pytest.skip("keras not accessible via Ibex basilisk IbexEnv")
+
+
 def _make_airr_adata(heavy_cdrs, extra_light=False):
     """Build a minimal scirpy AIRR AnnData from a list of heavy-chain CDR3s.
 
@@ -135,7 +150,7 @@ def test_tl_ibex_nan_for_missing_chain(require_ibex_r):
     assert not np.any(np.isnan(adata.obsm["X_ibex"][:-1]))
 
 
-def test_tl_ibex_key_added(require_ibex_r):
+def test_tl_ibex_key_added(require_ibex_r, require_keras):
     import scibex.tl
 
     adata = _make_airr_adata(_HEAVY_CDRS[:1])
