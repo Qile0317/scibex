@@ -7,6 +7,8 @@ def install_r_deps(
     lib_loc: str | None = None,
     use_renv: bool = False,
     force: bool = False,
+    upgrade: bool = False,
+    verbose: bool = True,
 ) -> None:
     """Install the Ibex R package and its dependencies.
 
@@ -31,6 +33,15 @@ def install_r_deps(
         library.  Requires the ``renv`` R package to be available.
     force:
         If ``True``, reinstall all packages even if already present.
+    upgrade:
+        If ``False`` (default), never upgrade existing Ibex dependencies
+        (passes ``upgrade="never"`` to ``remotes::install_github``).
+        If ``True``, always upgrade (passes ``upgrade="always"``).  The
+        default avoids the interactive prompt that hangs notebooks.
+    verbose:
+        If ``True`` (default), print a status line for each package being
+        installed and a confirmation message when everything is already
+        up-to-date.  Set to ``False`` to silence all output.
 
     Examples
     --------
@@ -49,6 +60,10 @@ def install_r_deps(
     """
     from rpy2.robjects.packages import importr, isinstalled
 
+    def _log(msg: str) -> None:
+        if verbose:
+            print(msg)
+
     if use_renv:
         renv = importr("renv")
         renv.init(project=os.getcwd(), **{"project.name": "scibex"})
@@ -58,14 +73,23 @@ def install_r_deps(
     if lib_loc is not None:
         cran_kwargs["lib"] = lib_loc
 
+    installed: list[str] = []
+
     for pkg in ("remotes", "callr"):
         if force or not isinstalled(pkg):
+            _log(f"Installing {pkg}...")
             utils_r.install_packages(pkg, **cran_kwargs)
+            installed.append(pkg)
 
     remotes = importr("remotes")
-    gh_kwargs: dict = {}
+    gh_kwargs: dict = {"upgrade": "always" if upgrade else "never"}
     if lib_loc is not None:
         gh_kwargs["lib"] = lib_loc
 
     if force or not isinstalled("Ibex"):
+        _log("Installing Ibex from BorchLab/Ibex@devel...")
         remotes.install_github("BorchLab/Ibex@devel", **gh_kwargs)
+        installed.append("Ibex")
+
+    if not installed:
+        _log("All R dependencies already installed.")
