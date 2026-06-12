@@ -25,6 +25,7 @@ def install_r_deps(
     lib_loc:
         R library directory to install into.  ``None`` uses R's default
         ``.libPaths()[1]``, i.e. the first writable library on the path.
+        Ignored when an renv project is active (renv manages the library).
     use_renv:
         If ``True``, initialise an ``renv`` project in the current working
         directory before installing.  This creates an isolated R library
@@ -59,37 +60,64 @@ def install_r_deps(
     >>> ib.install_r_deps(lib_loc="/path/to/my/R/library")
     """
     from rpy2.robjects.packages import importr, isinstalled
+    from rpy2.robjects.vectors import StrVector
 
     def _log(msg: str) -> None:
         if verbose:
             print(msg)
 
     if use_renv:
-        renv = importr("renv")
-        renv.init(project=os.getcwd(), **{"project.name": "scibex"})
+        renv_r = importr("renv")
+        renv_r.init(project=os.getcwd(), **{"project.name": "scibex"})
 
-    utils_r = importr("utils")
-    cran_kwargs: dict = {"repos": "https://cloud.r-project.org"}
-    if lib_loc is not None:
-        cran_kwargs["lib"] = lib_loc
+    # Detect whether an renv project is active in the current R session.
+    # When renv is active, install.packages() is intercepted but may not
+    # persist across renv::restore(); renv::install() + renv::snapshot()
+    # integrates correctly and persists packages in the lockfile.
+    try:
+        _renv_r_check = importr("renv")
+        _renv_active: bool = bool(list(_renv_r_check.is_active())[0])
+    except Exception:
+        _renv_active = False
 
     installed: list[str] = []
 
-    for pkg in ("remotes", "callr"):
-        if force or not isinstalled(pkg):
-            _log(f"Installing {pkg}...")
-            utils_r.install_packages(pkg, **cran_kwargs)
-            installed.append(pkg)
+    if _renv_active:
+        renv_r = importr("renv")
+        for pkg in ("remotes", "callr"):
+            if force or not isinstalled(pkg):
+                _log(f"Installing {pkg} (via renv)...")
+                renv_r.install(pkg, prompt=False)
+                installed.append(pkg)
+        if force or not isinstalled("Ibex"):
+            _log("Installing Ibex from BorchLab/Ibex@devel (via renv)...")
+            renv_r.install("BorchLab/Ibex@devel", prompt=False)
+            installed.append("Ibex")
+        if installed:
+            # Persist newly installed packages to renv.lock so they survive
+            # future renv::restore() calls without re-running install_r_deps().
+            renv_r.snapshot(packages=StrVector(installed), prompt=False)
+    else:
+        utils_r = importr("utils")
+        cran_kwargs: dict = {"repos": "https://cloud.r-project.org"}
+        if lib_loc is not None:
+            cran_kwargs["lib"] = lib_loc
 
-    remotes = importr("remotes")
-    gh_kwargs: dict = {"upgrade": "always" if upgrade else "never"}
-    if lib_loc is not None:
-        gh_kwargs["lib"] = lib_loc
+        for pkg in ("remotes", "callr"):
+            if force or not isinstalled(pkg):
+                _log(f"Installing {pkg}...")
+                utils_r.install_packages(pkg, **cran_kwargs)
+                installed.append(pkg)
 
-    if force or not isinstalled("Ibex"):
-        _log("Installing Ibex from BorchLab/Ibex@devel...")
-        remotes.install_github("BorchLab/Ibex@devel", **gh_kwargs)
-        installed.append("Ibex")
+        remotes = importr("remotes")
+        gh_kwargs: dict = {"upgrade": "always" if upgrade else "never"}
+        if lib_loc is not None:
+            gh_kwargs["lib"] = lib_loc
+
+        if force or not isinstalled("Ibex"):
+            _log("Installing Ibex from BorchLab/Ibex@devel...")
+            remotes.install_github("BorchLab/Ibex@devel", **gh_kwargs)
+            installed.append("Ibex")
 
     if not installed:
         _log("All R dependencies already installed.")

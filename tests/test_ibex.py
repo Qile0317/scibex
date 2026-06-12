@@ -150,11 +150,11 @@ def test_tl_ibex_nan_for_missing_chain(require_ibex_r):
     assert not np.any(np.isnan(adata.obsm["X_ibex"][:-1]))
 
 
-def test_tl_ibex_key_added(require_ibex_r, require_keras):
+def test_tl_ibex_key_added(require_ibex_r):
     import scibex.tl
 
     adata = _make_airr_adata(_HEAVY_CDRS[:1])
-    scibex.tl.ibex(adata, key_added="X_custom")
+    scibex.tl.ibex(adata, chain="Heavy", method="geometric", key_added="X_custom")
     assert "X_custom" in adata.obsm
     assert "X_ibex" not in adata.obsm
 
