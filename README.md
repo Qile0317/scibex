@@ -26,12 +26,30 @@ Ibex encodes CDR3 (or CDR1+2+3) amino acid sequences from paired heavy and light
 pip install scibex
 ```
 
-scibex requires R with the Ibex package:
+scibex wraps the [Ibex R package](https://github.com/BorchLab/Ibex) via rpy2.
+Install the R dependency from Python:
+
+```python
+import scibex as ib
+ib.install_r_deps()                            # into R's default library
+ib.install_r_deps(lib_loc="/path/to/my/Rlib")  # into a specific directory
+```
+
+Or directly in R:
 
 ```r
-# in R
-devtools::install_github("BorchLab/Ibex")
+remotes::install_github("BorchLab/Ibex")
 ```
+
+If Ibex is in a non-default R library, call `ib.setup(lib_loc=...)` **once**
+before any embedding call:
+
+```python
+ib.setup(lib_loc="/path/to/my/Rlib")
+```
+
+See the [Installation docs](docs/installation.md) for R environment
+troubleshooting (conda ABI mismatches, `.Rprofile` interference, keras setup).
 
 ---
 
@@ -108,7 +126,7 @@ It covers:
 | Parameter | Options | Default |
 | --- | --- | --- |
 | `chain` | `"Heavy"`, `"Light"` | `"Heavy"` |
-| `method` | `"geometric"`, `"encoder"` | `"geometric"` |
+| `method` | `"encoder"`, `"geometric"` | `"encoder"` |
 | `encoder_model` | `"CNN"`, `"VAE"`, `"CNN.EXP"`, `"VAE.EXP"` | `"VAE"` |
 | `encoder_input` | `"atchleyFactors"`, `"kideraFactors"`, `"crucianiProperties"`, `"MSWHIM"`, `"tScales"`, `"OHE"` | `"atchleyFactors"` |
 | `species` | `"Human"`, `"Mouse"` | `"Human"` |

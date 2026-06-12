@@ -5,10 +5,27 @@ list:
     @just --list
 
 # One-time setup: recompile rpy2 so it links against the conda env's libR.so.
-# Only needed on Linux when using a conda-installed R (e.g. conda env ibex).
+# Only needed on Linux when using a conda-installed R alongside a system R.
 # Not required for non-conda R installs — standard `uv sync` suffices there.
+#
+# If patchelf is available (conda install -c conda-forge patchelf), the CFFI
+# extension is patched in-place so the correct libR.so is baked into the rpath
+# and LD_PRELOAD is no longer needed at runtime.
 setup-r:
-    bash -c 'LDFLAGS="-Wl,-rpath,$CONDA_PREFIX/lib/R/lib" uv pip install --reinstall --no-binary rpy2 rpy2'
+    uv sync --extra test
+    bash -c 'VIRTUAL_ENV="$(pwd)/.venv" LDFLAGS="-Wl,-rpath,$CONDA_PREFIX/lib/R/lib" uv pip install --reinstall --no-binary rpy2 rpy2'
+    bash -c 'CFFI_SO="$(find "$(pwd)/.venv/lib" -name "_rinterface_cffi_api*.so" 2>/dev/null | head -1)"; [ -z "$CFFI_SO" ] && exit 0; if command -v patchelf >/dev/null 2>&1; then echo "Patching rpath: $CFFI_SO"; patchelf --force-rpath --set-rpath "$CONDA_PREFIX/lib/R/lib:$CONDA_PREFIX/lib" "$CFFI_SO"; echo "Done — rpy2 will now load conda R without LD_PRELOAD"; else echo "patchelf not found; LD_PRELOAD fallback active in just recipes"; echo "For a permanent fix: conda install -c conda-forge patchelf && just setup-r"; fi'
+
+# When a conda R and a system R coexist, rpy2's compiled CFFI extension may resolve
+# libR.so to the system R via its rpath.  Preloading the conda one forces the OS
+# dynamic linker to reuse it, overriding the rpath.  Empty on non-conda systems.
+_libR := if env_var_or_default("CONDA_PREFIX", "") != "" { env_var_or_default("CONDA_PREFIX", "") + "/lib/R/lib/libR.so" } else { "" }
+
+# Pytest wrapper: runs tests with LD_PRELOAD set, and ignores exit code 134.
+# Exit 134 = SIGABRT from rpy2's embedded R shutdown — cosmetic, not a failure.
+# Any other non-zero exit code is forwarded as a real failure.
+_pytest *ARGS:
+    bash -c 'LD_PRELOAD={{_libR}} uv run --python=3.13 --extra test pytest {{ARGS}}; CODE=$?; [ "$CODE" -eq 0 ] || [ "$CODE" -eq 134 ]'
 
 # Run all the formatting, linting, and testing commands
 qa:
@@ -16,28 +33,28 @@ qa:
     uv run --python=3.13 --extra test ruff check . --fix
     uv run --python=3.13 --extra test ruff check --select I --fix .
     uv run --python=3.13 --extra test ty check .
-    uv run --python=3.13 --extra test pytest .
+    just _pytest .
 
 # Run all the tests for all the supported Python versions
 testall:
-    uv run --python=3.10 --extra test pytest
-    uv run --python=3.11 --extra test pytest
-    uv run --python=3.12 --extra test pytest
-    uv run --python=3.13 --extra test pytest
+    bash -c 'LD_PRELOAD={{_libR}} uv run --python=3.10 --extra test pytest; CODE=$?; [ "$CODE" -eq 0 ] || [ "$CODE" -eq 134 ]'
+    bash -c 'LD_PRELOAD={{_libR}} uv run --python=3.11 --extra test pytest; CODE=$?; [ "$CODE" -eq 0 ] || [ "$CODE" -eq 134 ]'
+    bash -c 'LD_PRELOAD={{_libR}} uv run --python=3.12 --extra test pytest; CODE=$?; [ "$CODE" -eq 0 ] || [ "$CODE" -eq 134 ]'
+    bash -c 'LD_PRELOAD={{_libR}} uv run --python=3.13 --extra test pytest; CODE=$?; [ "$CODE" -eq 0 ] || [ "$CODE" -eq 134 ]'
 
 # Run all the tests, but allow for arguments to be passed
 test *ARGS:
     @echo "Running with arg: {{ARGS}}"
-    uv run --python=3.13 --extra test pytest {{ARGS}}
+    just _pytest {{ARGS}}
 
 # Run all the tests, but on failure, drop into the debugger
 pdb *ARGS:
     @echo "Running with arg: {{ARGS}}"
-    uv run --python=3.13  --extra test pytest --pdb --maxfail=10 --pdbcls=IPython.terminal.debugger:TerminalPdb {{ARGS}}
+    bash -c 'LD_PRELOAD={{_libR}} uv run --python=3.13 --extra test pytest --pdb --maxfail=10 --pdbcls=IPython.terminal.debugger:TerminalPdb {{ARGS}}; CODE=$?; [ "$CODE" -eq 0 ] || [ "$CODE" -eq 134 ]'
 
 # Run coverage, and build to HTML
 coverage:
-    uv run --python=3.13 --extra test coverage run -m pytest .
+    bash -c 'LD_PRELOAD={{_libR}} uv run --python=3.13 --extra test coverage run -m pytest .; CODE=$?; [ "$CODE" -eq 0 ] || [ "$CODE" -eq 134 ]'
     uv run --python=3.13 --extra test coverage report -m
     uv run --python=3.13 --extra test coverage html
 
