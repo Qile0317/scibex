@@ -56,5 +56,16 @@ def ibex_r():
         return _ibex_pkg
     with _lock:
         if _ibex_pkg is None:
+            # rpy2 pre-initialises Python at the C level, but reticulate's
+            # py_available() returns FALSE until reticulate itself calls
+            # py_config().  Without this call, basiliskRun uses inline mode
+            # (thinking Python isn't running), calls Py_Initialize for IbexEnv,
+            # which is a no-op because Python 3.x is already live — leaving
+            # reticulate attached to the wrong interpreter.  Calling py_config()
+            # first makes py_available() return TRUE, so basilisk routes to
+            # PSOCK subprocess mode where IbexEnv's Python starts cleanly.
+            import rpy2.robjects as ro
+
+            ro.r("reticulate::py_config()")
             _ibex_pkg = importr("Ibex", lib_loc=_lib_loc)
     return _ibex_pkg
