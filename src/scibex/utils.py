@@ -6,12 +6,17 @@ import os
 def install_r_deps(
     lib_loc: str | None = None,
     use_renv: bool = False,
+    force: bool = False,
 ) -> None:
     """Install the Ibex R package and its dependencies.
 
-    Fetches Ibex from GitHub (``BorchLab/Ibex``) via the R ``remotes``
-    package.  If ``remotes`` is not installed, it is installed automatically
-    from CRAN before proceeding.
+    Fetches Ibex from GitHub (``BorchLab/Ibex@devel``) via the R ``remotes``
+    package.  Also installs ``callr``, which basilisk requires to run the
+    encoder in a subprocess isolated from any pre-existing Python session
+    (necessary when calling scibex from a Jupyter notebook via rpy2).
+
+    Skips packages that are already installed unless ``force=True``, so
+    repeated calls are fast.
 
     Parameters
     ----------
@@ -24,6 +29,8 @@ def install_r_deps(
         scoped to the project (named ``"scibex"`` in the renv metadata),
         which keeps Ibex and its dependencies separate from the system
         library.  Requires the ``renv`` R package to be available.
+    force:
+        If ``True``, reinstall all packages even if already present.
 
     Examples
     --------
@@ -47,11 +54,18 @@ def install_r_deps(
         renv.init(project=os.getcwd(), **{"project.name": "scibex"})
 
     utils_r = importr("utils")
-    if not isinstalled("remotes"):
-        utils_r.install_packages("remotes", repos="https://cloud.r-project.org")
+    cran_kwargs: dict = {"repos": "https://cloud.r-project.org"}
+    if lib_loc is not None:
+        cran_kwargs["lib"] = lib_loc
+
+    for pkg in ("remotes", "callr"):
+        if force or not isinstalled(pkg):
+            utils_r.install_packages(pkg, **cran_kwargs)
 
     remotes = importr("remotes")
-    kwargs: dict = {}
+    gh_kwargs: dict = {}
     if lib_loc is not None:
-        kwargs["lib"] = lib_loc
-    remotes.install_github("BorchLab/Ibex", **kwargs)
+        gh_kwargs["lib"] = lib_loc
+
+    if force or not isinstalled("Ibex"):
+        remotes.install_github("BorchLab/Ibex@devel", **gh_kwargs)

@@ -33,12 +33,16 @@ Install the R dependency from Python:
 import scibex as ib
 ib.install_r_deps()                            # into R's default library
 ib.install_r_deps(lib_loc="/path/to/my/Rlib")  # into a specific directory
+ib.install_r_deps(force=True)                  # force-reinstall everything
 ```
+
+This also installs `callr`, which basilisk needs to run the encoder in an
+isolated subprocess (required when calling scibex from a Jupyter notebook).
 
 Or directly in R:
 
 ```r
-remotes::install_github("BorchLab/Ibex")
+remotes::install_github("BorchLab/Ibex@devel")
 ```
 
 If Ibex is in a non-default R library, call `ib.setup(lib_loc=...)` **once**

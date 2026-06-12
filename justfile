@@ -16,10 +16,14 @@ setup-r:
     bash -c 'VIRTUAL_ENV="$(pwd)/.venv" LDFLAGS="-Wl,-rpath,$CONDA_PREFIX/lib/R/lib" uv pip install --reinstall --no-binary rpy2 rpy2'
     bash -c 'CFFI_SO="$(find "$(pwd)/.venv/lib" -name "_rinterface_cffi_api*.so" 2>/dev/null | head -1)"; [ -z "$CFFI_SO" ] && exit 0; if command -v patchelf >/dev/null 2>&1; then echo "Patching rpath: $CFFI_SO"; patchelf --force-rpath --set-rpath "$CONDA_PREFIX/lib/R/lib:$CONDA_PREFIX/lib" "$CFFI_SO"; echo "Done — rpy2 will now load conda R without LD_PRELOAD"; else echo "patchelf not found; LD_PRELOAD fallback active in just recipes"; echo "For a permanent fix: conda install -c conda-forge patchelf && just setup-r"; fi'
 
+# LD_PRELOAD fallback for the conda R + system R ABI conflict (Linux only).
 # When a conda R and a system R coexist, rpy2's compiled CFFI extension may resolve
-# libR.so to the system R via its rpath.  Preloading the conda one forces the OS
-# dynamic linker to reuse it, overriding the rpath.  Empty on non-conda systems.
-_libR := if env_var_or_default("CONDA_PREFIX", "") != "" { env_var_or_default("CONDA_PREFIX", "") + "/lib/R/lib/libR.so" } else { "" }
+# libR.so to the system R via its rpath.  Preloading the conda libR.so forces the
+# dynamic linker to use it instead.  Empty string on macOS or when not in a conda env
+# (LD_PRELOAD="" is a no-op; macOS ignores LD_PRELOAD entirely).
+# This is only a fallback — `just setup-r` with patchelf makes it unnecessary.
+_os := `uname -s`
+_libR := if _os == "Linux" { if env_var_or_default("CONDA_PREFIX", "") != "" { env_var_or_default("CONDA_PREFIX", "") + "/lib/R/lib/libR.so" } else { "" } } else { "" }
 
 # Pytest wrapper: runs tests with LD_PRELOAD set, and ignores exit code 134.
 # Exit 134 = SIGABRT from rpy2's embedded R shutdown — cosmetic, not a failure.

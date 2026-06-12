@@ -21,7 +21,13 @@ import scibex as ib
 
 ib.install_r_deps()                           # installs into R's default .libPaths()
 ib.install_r_deps(lib_loc="/path/to/my/Rlib") # install into a specific directory
+ib.install_r_deps(force=True)                 # force-reinstall everything
 ```
+
+This installs Ibex, `remotes`, and `callr`.  Packages already present are
+skipped, so repeated calls return quickly.  `callr` is required for the
+encoder (`method="encoder"`) to work from a Jupyter notebook: without it,
+basilisk runs inline and conflicts with rpy2's pre-initialized Python.
 
 If the target directory is non-standard, tell scibex where to find it at runtime:
 
@@ -34,9 +40,7 @@ ib.setup(lib_loc="/path/to/my/Rlib")
 ### Option B — install directly in R
 
 ```r
-devtools::install_github("BorchLab/Ibex")
-# or without devtools:
-remotes::install_github("BorchLab/Ibex")
+remotes::install_github("BorchLab/Ibex@devel")
 ```
 
 ## Troubleshooting R environments
