@@ -25,11 +25,9 @@ setup-r:
 _os := `uname -s`
 _libR := if _os == "Linux" { if env_var_or_default("CONDA_PREFIX", "") != "" { env_var_or_default("CONDA_PREFIX", "") + "/lib/R/lib/libR.so" } else { "" } } else { "" }
 
-# Pytest wrapper: runs tests with LD_PRELOAD set, and ignores exit code 134.
-# Exit 134 = SIGABRT from rpy2's embedded R shutdown — cosmetic, not a failure.
-# Any other non-zero exit code is forwarded as a real failure.
+# Pytest wrapper: runs tests with LD_PRELOAD set for the conda R ABI fix.
 _pytest *ARGS:
-    bash -c 'LD_PRELOAD={{_libR}} uv run --python=3.13 --extra test pytest {{ARGS}}; CODE=$?; [ "$CODE" -eq 0 ] || [ "$CODE" -eq 134 ]'
+    LD_PRELOAD={{_libR}} uv run --python=3.13 --extra test pytest {{ARGS}}
 
 # Run all the formatting, linting, and testing commands
 qa:
@@ -41,10 +39,10 @@ qa:
 
 # Run all the tests for all the supported Python versions
 testall:
-    bash -c 'LD_PRELOAD={{_libR}} uv run --python=3.10 --extra test pytest; CODE=$?; [ "$CODE" -eq 0 ] || [ "$CODE" -eq 134 ]'
-    bash -c 'LD_PRELOAD={{_libR}} uv run --python=3.11 --extra test pytest; CODE=$?; [ "$CODE" -eq 0 ] || [ "$CODE" -eq 134 ]'
-    bash -c 'LD_PRELOAD={{_libR}} uv run --python=3.12 --extra test pytest; CODE=$?; [ "$CODE" -eq 0 ] || [ "$CODE" -eq 134 ]'
-    bash -c 'LD_PRELOAD={{_libR}} uv run --python=3.13 --extra test pytest; CODE=$?; [ "$CODE" -eq 0 ] || [ "$CODE" -eq 134 ]'
+    LD_PRELOAD={{_libR}} uv run --python=3.10 --extra test pytest
+    LD_PRELOAD={{_libR}} uv run --python=3.11 --extra test pytest
+    LD_PRELOAD={{_libR}} uv run --python=3.12 --extra test pytest
+    LD_PRELOAD={{_libR}} uv run --python=3.13 --extra test pytest
 
 # Run all the tests, but allow for arguments to be passed
 test *ARGS:
@@ -54,11 +52,11 @@ test *ARGS:
 # Run all the tests, but on failure, drop into the debugger
 pdb *ARGS:
     @echo "Running with arg: {{ARGS}}"
-    bash -c 'LD_PRELOAD={{_libR}} uv run --python=3.13 --extra test pytest --pdb --maxfail=10 --pdbcls=IPython.terminal.debugger:TerminalPdb {{ARGS}}; CODE=$?; [ "$CODE" -eq 0 ] || [ "$CODE" -eq 134 ]'
+    LD_PRELOAD={{_libR}} uv run --python=3.13 --extra test pytest --pdb --maxfail=10 --pdbcls=IPython.terminal.debugger:TerminalPdb {{ARGS}}
 
 # Run coverage, and build to HTML
 coverage:
-    bash -c 'LD_PRELOAD={{_libR}} uv run --python=3.13 --extra test coverage run -m pytest .; CODE=$?; [ "$CODE" -eq 0 ] || [ "$CODE" -eq 134 ]'
+    LD_PRELOAD={{_libR}} uv run --python=3.13 --extra test coverage run -m pytest .
     uv run --python=3.13 --extra test coverage report -m
     uv run --python=3.13 --extra test coverage html
 
