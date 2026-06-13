@@ -2,6 +2,19 @@ from __future__ import annotations
 
 import os
 
+_IBEX_MIN_VERSION = (1, 3, 2)
+
+
+def _installed_ibex_version() -> tuple[int, ...] | None:
+    """Return the installed Ibex version as an int tuple, or None if not installed."""
+    from rpy2.robjects.packages import importr, isinstalled
+
+    if not isinstalled("Ibex"):
+        return None
+    utils_r, base_r = importr("utils"), importr("base")
+    ver_str = str(list(base_r.as_character(utils_r.packageVersion("Ibex")))[0])
+    return tuple(int(x) for x in ver_str.split("."))
+
 
 def install_r_deps(
     lib_loc: str | None = None,
@@ -89,8 +102,14 @@ def install_r_deps(
                 _log(f"Installing {pkg} (via renv)...")
                 renv_r.install(pkg, prompt=False)
                 installed.append(pkg)
-        if force or not isinstalled("Ibex"):
-            _log("Installing Ibex from BorchLab/Ibex@devel (via renv)...")
+        _ibex_ver = _installed_ibex_version()
+        _ibex_outdated = _ibex_ver is None or _ibex_ver < _IBEX_MIN_VERSION
+        if force or _ibex_outdated:
+            min_str = ".".join(map(str, _IBEX_MIN_VERSION))
+            if _ibex_ver is not None and _ibex_ver < _IBEX_MIN_VERSION:
+                _log(f"Upgrading Ibex {'.'.join(map(str, _ibex_ver))} → >={min_str} (via renv)...")
+            else:
+                _log("Installing Ibex from BorchLab/Ibex@devel (via renv)...")
             renv_r.install("BorchLab/Ibex@devel", prompt=False)
             installed.append("Ibex")
         if installed:
@@ -114,8 +133,14 @@ def install_r_deps(
         if lib_loc is not None:
             gh_kwargs["lib"] = lib_loc
 
-        if force or not isinstalled("Ibex"):
-            _log("Installing Ibex from BorchLab/Ibex@devel...")
+        _ibex_ver = _installed_ibex_version()
+        _ibex_outdated = _ibex_ver is None or _ibex_ver < _IBEX_MIN_VERSION
+        if force or _ibex_outdated:
+            min_str = ".".join(map(str, _IBEX_MIN_VERSION))
+            if _ibex_ver is not None and _ibex_ver < _IBEX_MIN_VERSION:
+                _log(f"Upgrading Ibex {'.'.join(map(str, _ibex_ver))} → >={min_str}...")
+            else:
+                _log("Installing Ibex from BorchLab/Ibex@devel...")
             remotes.install_github("BorchLab/Ibex@devel", **gh_kwargs)
             installed.append("Ibex")
 

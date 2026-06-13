@@ -16,6 +16,19 @@ _HEAVY_CDR1S = ["GFTFSSYA", "GGTFSSYA", "GFTFSNYA"]
 _HEAVY_CDR2S = ["ISGSGGST", "ISGSAGST", "ISGSGGNT"]
 
 
+def _smart_mock(dim: int = 4, val: float = 1.0):
+    """Mock for ibex_matrix that respects None → fill_value, matching the real API."""
+
+    def _mock(sequences, fill_value=0.0, **kw):
+        out = np.full((len(sequences), dim), fill_value)
+        for i, s in enumerate(sequences):
+            if s is not None:
+                out[i] = val
+        return out
+
+    return _mock
+
+
 @pytest.fixture(scope="session")
 def require_ibex_r():
     from rpy2.robjects.packages import isinstalled
@@ -120,6 +133,68 @@ def test_ibex_matrix_returns_float(require_ibex_r):
     assert np.issubdtype(emb.dtype, np.floating)
 
 
+def test_ibex_matrix_none_fills_zeros_by_default(monkeypatch):
+    """ibex_matrix fills None entries with 0.0 by default."""
+    import scibex._ibex as mod
+
+    monkeypatch.setattr(mod, "_raw_embed", lambda seqs, **kw: np.ones((len(seqs), 4)))
+    from scibex import ibex_matrix
+
+    result = ibex_matrix(["CARDYW", None, "CARDSSGYW"])
+    assert result.shape == (3, 4)
+    assert np.all(result[1] == 0.0)
+    assert not np.any(np.isnan(result[[0, 2]]))
+
+
+def test_ibex_matrix_none_fill_value_nan(monkeypatch):
+    """ibex_matrix fills None entries with NaN when fill_value=nan."""
+    import scibex._ibex as mod
+
+    monkeypatch.setattr(mod, "_raw_embed", lambda seqs, **kw: np.ones((len(seqs), 4)))
+    from scibex import ibex_matrix
+
+    result = ibex_matrix(["CARDYW", None], fill_value=float("nan"))
+    assert result.shape == (2, 4)
+    assert np.all(np.isnan(result[1]))
+    assert not np.any(np.isnan(result[0]))
+
+
+def test_ibex_matrix_verbose_warns_missing(monkeypatch):
+    """ibex_matrix emits UserWarning when verbose=True and any sequence is None."""
+    import scibex._ibex as mod
+
+    monkeypatch.setattr(mod, "_raw_embed", lambda seqs, **kw: np.ones((len(seqs), 4)))
+    from scibex import ibex_matrix
+
+    with pytest.warns(UserWarning, match="1 of 2"):
+        ibex_matrix(["CARDYW", None], verbose=True)
+
+
+def test_ibex_matrix_no_warn_when_all_present(monkeypatch):
+    """ibex_matrix does not warn when verbose=True and no None entries."""
+    import warnings
+
+    import scibex._ibex as mod
+
+    monkeypatch.setattr(mod, "_raw_embed", lambda seqs, **kw: np.ones((len(seqs), 4)))
+    from scibex import ibex_matrix
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        ibex_matrix(["CARDYW", "CARDSSGYW"], verbose=True)
+
+
+def test_ibex_matrix_returns_full_array_shape(monkeypatch):
+    """ibex_matrix always returns [N, D] where N = len(sequences) including None."""
+    import scibex._ibex as mod
+
+    monkeypatch.setattr(mod, "_raw_embed", lambda seqs, **kw: np.ones((len(seqs), 6)))
+    from scibex import ibex_matrix
+
+    result = ibex_matrix(["A", None, "B", None, "C"])
+    assert result.shape == (5, 6)
+
+
 # -- tl.ibex ------------------------------------------------------------------
 
 
@@ -143,7 +218,7 @@ def test_tl_ibex_nan_for_missing_chain(require_ibex_r):
     import scibex.tl
 
     adata = _make_airr_adata(_HEAVY_CDRS, extra_light=True)
-    scibex.tl.ibex(adata, chain="Heavy", method="geometric")
+    scibex.tl.ibex(adata, chain="Heavy", method="geometric", fill_value=float("nan"))
     # last cell has no heavy chain — entire row must be NaN
     assert np.all(np.isnan(adata.obsm["X_ibex"][-1]))
     # cells with chains must not be NaN
@@ -173,6 +248,32 @@ def test_tl_ibex_mudata_stores_in_airr_modality(require_ibex_r):
 
     assert "X_ibex" in mdata["airr"].obsm
     assert mdata["airr"].obsm["X_ibex"].shape[0] == 2
+
+
+def test_tl_ibex_missing_chain_fills_zeros_by_default(monkeypatch):
+    """Missing-chain rows are zero-filled by default, not NaN."""
+    import scibex._ibex as _ibex_mod
+    import scibex.tl
+
+    monkeypatch.setattr(_ibex_mod, "ibex_matrix", _smart_mock(dim=4))
+
+    adata = _make_airr_adata(_HEAVY_CDRS[:2], extra_light=True)
+    scibex.tl.ibex(adata, chain="Heavy", method="geometric")
+
+    assert np.all(adata.obsm["X_ibex"][-1] == 0.0)
+    assert not np.any(np.isnan(adata.obsm["X_ibex"][:-1]))
+
+
+def test_tl_ibex_verbose_warns_missing_chain(monkeypatch):
+    """verbose=True emits a UserWarning when chain is missing."""
+    import scibex._ibex as _ibex_mod
+    import scibex.tl
+
+    monkeypatch.setattr(_ibex_mod, "ibex_matrix", _smart_mock(dim=4))
+
+    adata = _make_airr_adata(_HEAVY_CDRS[:2], extra_light=True)
+    with pytest.warns(UserWarning, match="1 of 3 cells missing Heavy chain"):
+        scibex.tl.ibex(adata, chain="Heavy", method="geometric", verbose=True)
 
 
 # -- EXP models (CDR1+CDR2+CDR3) ---------------------------------------------
@@ -210,10 +311,9 @@ def test_tl_ibex_exp_passes_joined_sequences(monkeypatch):
 
     captured = {}
 
-    def fake_ibex_matrix(sequences, **kwargs):
-        captured["sequences"] = sequences
-        n = len(sequences)
-        return np.zeros((n, 8))
+    def fake_ibex_matrix(sequences, fill_value=0.0, **kwargs):
+        captured["sequences"] = list(sequences)
+        return np.zeros((len(sequences), 8))
 
     monkeypatch.setattr(_ibex_mod, "ibex_matrix", fake_ibex_matrix)
 
@@ -225,18 +325,90 @@ def test_tl_ibex_exp_passes_joined_sequences(monkeypatch):
 
 
 def test_tl_ibex_exp_nan_for_missing_cdr1(monkeypatch):
-    """Cells missing CDR1 get NaN rows in EXP mode."""
+    """Cells missing CDR1 get NaN rows in EXP strict mode when fill_value=nan."""
     import scibex._ibex as _ibex_mod
     import scibex.tl
 
-    def fake_ibex_matrix(sequences, **kwargs):
-        return np.ones((len(sequences), 8))
-
-    monkeypatch.setattr(_ibex_mod, "ibex_matrix", fake_ibex_matrix)
+    monkeypatch.setattr(_ibex_mod, "ibex_matrix", _smart_mock(dim=8))
 
     adata = _make_airr_adata_exp(_HEAVY_CDR1S[:2], _HEAVY_CDR2S[:2], _HEAVY_CDRS[:2], extra_no_cdr1=True)
-    scibex.tl.ibex(adata, chain="Heavy", method="encoder", encoder_model="VAE.EXP")
+    scibex.tl.ibex(
+        adata, chain="Heavy", method="encoder", encoder_model="VAE.EXP", strategy="strict", fill_value=float("nan")
+    )
 
     assert adata.obsm["X_ibex"].shape[0] == 3
     assert np.all(np.isnan(adata.obsm["X_ibex"][-1]))  # cell without cdr1_aa
     assert not np.any(np.isnan(adata.obsm["X_ibex"][:-1]))
+
+
+def test_tl_ibex_exp_missing_cdr1_fills_zeros_by_default(monkeypatch):
+    """EXP cells missing CDR1 are zero-filled when strategy='strict'."""
+    import scibex._ibex as _ibex_mod
+    import scibex.tl
+
+    monkeypatch.setattr(_ibex_mod, "ibex_matrix", _smart_mock(dim=8))
+
+    adata = _make_airr_adata_exp(_HEAVY_CDR1S[:2], _HEAVY_CDR2S[:2], _HEAVY_CDRS[:2], extra_no_cdr1=True)
+    scibex.tl.ibex(adata, chain="Heavy", method="encoder", encoder_model="VAE.EXP", strategy="strict")
+
+    assert np.all(adata.obsm["X_ibex"][-1] == 0.0)
+    assert not np.any(np.isnan(adata.obsm["X_ibex"][:-1]))
+
+
+def test_tl_ibex_exp_verbose_warns_missing_cdr1(monkeypatch):
+    """verbose=True emits a UserWarning when CDR1/2/3 incomplete in EXP strict mode."""
+    import scibex._ibex as _ibex_mod
+    import scibex.tl
+
+    monkeypatch.setattr(_ibex_mod, "ibex_matrix", _smart_mock(dim=8))
+
+    adata = _make_airr_adata_exp(_HEAVY_CDR1S[:2], _HEAVY_CDR2S[:2], _HEAVY_CDRS[:2], extra_no_cdr1=True)
+    with pytest.warns(UserWarning, match="1 of 3 cells missing CDR"):
+        scibex.tl.ibex(adata, chain="Heavy", method="encoder", encoder_model="VAE.EXP", strategy="strict", verbose=True)
+
+
+# -- strategy param (EXP models) ----------------------------------------------
+
+
+def test_tl_ibex_exp_strict_passes_none_for_partial_missing(monkeypatch):
+    """strategy='strict': cell missing CDR1 → None passed to ibex_matrix."""
+    import scibex._ibex as _ibex_mod
+    import scibex.tl
+
+    captured = {}
+
+    def fake_ibex_matrix(sequences, fill_value=0.0, **kw):
+        captured["sequences"] = list(sequences)
+        return np.zeros((len(sequences), 8))
+
+    monkeypatch.setattr(_ibex_mod, "ibex_matrix", fake_ibex_matrix)
+
+    adata = _make_airr_adata_exp(_HEAVY_CDR1S[:2], _HEAVY_CDR2S[:2], _HEAVY_CDRS[:2], extra_no_cdr1=True)
+    scibex.tl.ibex(adata, chain="Heavy", method="encoder", encoder_model="CNN.EXP", strategy="strict")
+
+    # last cell has no cdr1_aa/cdr2_aa → strict → None
+    assert captured["sequences"][-1] is None
+    # first two cells are complete
+    assert all(s is not None for s in captured["sequences"][:-1])
+
+
+def test_tl_ibex_exp_lenient_passes_joined_for_partial_missing(monkeypatch):
+    """strategy='lenient': cell missing CDR1 → 'NA-CDR2-CDR3' (not None)."""
+    import scibex._ibex as _ibex_mod
+    import scibex.tl
+
+    captured = {}
+
+    def fake_ibex_matrix(sequences, fill_value=0.0, **kw):
+        captured["sequences"] = list(sequences)
+        return np.zeros((len(sequences), 8))
+
+    monkeypatch.setattr(_ibex_mod, "ibex_matrix", fake_ibex_matrix)
+
+    adata = _make_airr_adata_exp(_HEAVY_CDR1S[:2], _HEAVY_CDR2S[:2], _HEAVY_CDRS[:2], extra_no_cdr1=True)
+    scibex.tl.ibex(adata, chain="Heavy", method="encoder", encoder_model="CNN.EXP", strategy="lenient")
+
+    # last cell has no cdr1_aa/cdr2_aa → lenient → "NA-NA-CARDYW"
+    assert captured["sequences"][-1] is not None
+    assert captured["sequences"][-1].startswith("NA-")
+    assert captured["sequences"][-1].endswith("-CARDYW")
