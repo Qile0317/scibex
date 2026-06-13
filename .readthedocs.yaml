@@ -7,4 +7,5 @@ build:
   commands:
     - pip install zensical
     - zensical build --clean
-    - cp -r site/ $READTHEDOCS_OUTPUT/html/
+    - mkdir -p $READTHEDOCS_OUTPUT/html
+    - cp -r site/. $READTHEDOCS_OUTPUT/html/
