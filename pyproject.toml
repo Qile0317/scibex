@@ -1,7 +1,7 @@
 [project]
 name = "scibex"
 version = "0.1.0"
-description = "python wrap of the ibex R package"
+description = "Python interface to the Ibex BCR embedding R package for scverse single-cell analysis"
 readme = "README.md"
 authors = [
   {name = "Qile Yang", email = "qile.yang@berkeley.edu"}
@@ -10,7 +10,16 @@ maintainers = [
   {name = "Qile Yang", email = "qile.yang@berkeley.edu"}
 ]
 classifiers = [
-    # TODO
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Typing :: Typed",
 ]
 license = {text = "MIT"}
 dependencies = [

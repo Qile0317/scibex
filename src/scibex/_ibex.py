@@ -2,23 +2,23 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Sequence
-from typing import Literal
 
 import numpy as np
 import rpy2.robjects as ro
 from rpy2.robjects import StrVector, pandas2ri
 
 from ._r import ibex_r
+from ._types import Chain, EncoderInput, EncoderModel, Method, Species
 
 
 def _raw_embed(
     sequences: list[str],
-    chain: Literal["Heavy", "Light"],
-    method: Literal["encoder", "geometric"],
-    encoder_model: Literal["CNN", "VAE", "CNN.EXP", "VAE.EXP"],
-    encoder_input: Literal["atchleyFactors", "crucianiProperties", "kideraFactors", "MSWHIM", "tScales", "OHE"],
+    chain: Chain,
+    method: Method,
+    encoder_model: EncoderModel,
+    encoder_input: EncoderInput,
     geometric_theta: float,
-    species: Literal["Human", "Mouse"],
+    species: Species,
     verbose: bool,
 ) -> np.ndarray:
     """Call R's Ibex_matrix with a clean list of strings. No None handling."""
@@ -39,14 +39,12 @@ def _raw_embed(
 
 def ibex_matrix(
     sequences: Sequence[str | None],
-    chain: Literal["Heavy", "Light"] = "Heavy",
-    method: Literal["encoder", "geometric"] = "encoder",
-    encoder_model: Literal["CNN", "VAE", "CNN.EXP", "VAE.EXP"] = "VAE",
-    encoder_input: Literal[
-        "atchleyFactors", "crucianiProperties", "kideraFactors", "MSWHIM", "tScales", "OHE"
-    ] = "atchleyFactors",
+    chain: Chain = "Heavy",
+    method: Method = "encoder",
+    encoder_model: EncoderModel = "VAE",
+    encoder_input: EncoderInput = "atchleyFactors",
     geometric_theta: float = 3.14159265,
-    species: Literal["Human", "Mouse"] = "Human",
+    species: Species = "Human",
     verbose: bool = False,
     *,
     fill_value: float = 0.0,

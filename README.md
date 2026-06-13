@@ -36,8 +36,8 @@ ib.install_r_deps(lib_loc="/path/to/my/Rlib")  # into a specific directory
 ib.install_r_deps(force=True)                  # force-reinstall everything
 ```
 
-This also installs `callr`, which basilisk needs to run the encoder in an
-isolated subprocess (required when calling scibex from a Jupyter notebook).
+<!-- This also installs `callr`, which basilisk needs to run the encoder in an
+isolated subprocess (required when calling scibex from a Jupyter notebook). -->
 
 Or directly in R:
 
@@ -86,11 +86,11 @@ ib.tl.ibex(
 )
 ```
 
-For a fast geometric baseline (no model download needed):
+<!-- For a fast geometric baseline (no model download needed):
 
 ```python
 ib.tl.ibex(mdata, chain="Heavy", method="geometric", key_added="X_ibex_heavy")
-```
+``` -->
 
 If you only have a list of sequences (e.g. from a custom pipeline), use the low-level function directly:
 

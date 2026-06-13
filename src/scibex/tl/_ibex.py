@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 
@@ -9,8 +9,10 @@ if TYPE_CHECKING:
     from anndata import AnnData
     from muon import MuData
 
+from .._types import Chain, EncoderInput, EncoderModel, Method, Species, Strategy
 
-def _join_exp_cdr(c1: Any, c2: Any, c3: Any, strategy: str) -> str | None:
+
+def _join_exp_cdr(c1: Any, c2: Any, c3: Any, strategy: Strategy) -> str | None:
     """Join CDR1/CDR2/CDR3 into an EXP model input string.
 
     Returns None when the cell should be filled (strict: any CDR missing;
@@ -24,7 +26,7 @@ def _join_exp_cdr(c1: Any, c2: Any, c3: Any, strategy: str) -> str | None:
         r1 = "NA" if pd.isna(c1) else c1
         r2 = "NA" if pd.isna(c2) else c2
         return f"{r1}-{r2}-{c3}"
-    # strict (default): any missing CDR → fill row
+    # strict: any missing CDR → fill row
     if pd.isna(c1) or pd.isna(c2):
         return None
     return f"{c1}-{c2}-{c3}"
@@ -32,18 +34,16 @@ def _join_exp_cdr(c1: Any, c2: Any, c3: Any, strategy: str) -> str | None:
 
 def ibex(
     adata: AnnData | MuData,
-    chain: Literal["Heavy", "Light"] = "Heavy",
-    method: Literal["encoder", "geometric"] = "encoder",
-    encoder_model: Literal["CNN", "VAE", "CNN.EXP", "VAE.EXP"] = "VAE",
-    encoder_input: Literal[
-        "atchleyFactors", "crucianiProperties", "kideraFactors", "MSWHIM", "tScales", "OHE"
-    ] = "atchleyFactors",
+    chain: Chain = "Heavy",
+    method: Method = "encoder",
+    encoder_model: EncoderModel = "VAE",
+    encoder_input: EncoderInput = "atchleyFactors",
     geometric_theta: float = 3.14159265,
-    species: Literal["Human", "Mouse"] = "Human",
+    species: Species = "Human",
     verbose: bool = False,
     *,
     fill_value: float = 0.0,
-    strategy: Literal["strict", "lenient"] = "lenient",
+    strategy: Strategy = "lenient",
     airr_mod: str = "airr",
     airr_key: str = "airr",
     chain_idx_key: str = "chain_indices",
