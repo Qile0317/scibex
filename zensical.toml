@@ -1,0 +1,41 @@
+[project]
+site_name = "scibex"
+site_url = "https://Qile0317.github.io/scibex/"
+site_description = "Python interface to the Ibex BCR embedding R package for scverse single-cell analysis"
+site_author = "Qile Yang"
+copyright = "&copy; 2025 Qile Yang"
+repo_url = "https://github.com/Qile0317/scibex"
+
+[project.theme]
+features = [
+  "navigation.instant",
+  "navigation.path",
+  "navigation.top",
+  "navigation.footer",
+  "toc.follow",
+  "search.highlight",
+  "content.code.copy",
+  "content.action.edit",
+  "content.action.view",
+]
+
+[[project.theme.palette]]
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+
+[project.markdown_extensions.admonition]
+[project.markdown_extensions.tables]
+[project.markdown_extensions.footnotes]
+
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true
+
+[project.markdown_extensions.pymdownx.inlinehilite]
+[project.markdown_extensions.pymdownx.superfences]
+[project.markdown_extensions.pymdownx.snippets]

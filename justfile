@@ -66,6 +66,14 @@ build:
     rm -rf dist
     uv build
 
+# Serve the docs locally with live reload at localhost:8000
+docs-serve:
+    uv run --extra docs zensical serve
+
+# Build the docs to site/ (for local inspection)
+docs-build:
+    uv run --extra docs zensical build --clean
+
 VERSION := `grep -m1 '^version' pyproject.toml | sed -E 's/version = "(.*)"/\1/'`
 
 # Print the current version of the project
