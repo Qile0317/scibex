@@ -73,6 +73,7 @@ docs-serve:
 # Build the docs to site/ (for local inspection)
 docs-build:
     uv run --extra docs zensical build --clean
+    uv run --extra docs python scripts/convert_notebooks.py
 
 VERSION := `grep -m1 '^version' pyproject.toml | sed -E 's/version = "(.*)"/\1/'`
 

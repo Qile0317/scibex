@@ -5,7 +5,8 @@ build:
   tools:
     python: "3.12"
   commands:
-    - pip install zensical
+    - pip install zensical nbformat nbconvert jupyter beautifulsoup4 cyclopts
     - zensical build --clean
+    - python scripts/convert_notebooks.py
     - mkdir -p $READTHEDOCS_OUTPUT/html
     - cp -r site/. $READTHEDOCS_OUTPUT/html/

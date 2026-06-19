@@ -33,6 +33,11 @@ requires-python = ">= 3.10"
 [project.optional-dependencies]
 docs = [
     "zensical",
+    "nbformat",
+    "nbconvert",
+    "jupyter",
+    "beautifulsoup4",
+    "cyclopts",
 ]
 test = [
     "coverage",  # testing

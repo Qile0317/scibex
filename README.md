@@ -86,11 +86,13 @@ ib.tl.ibex(
 )
 ```
 
-<!-- For a fast geometric baseline (no model download needed):
+<!--
+For a fast geometric baseline (no model download needed):
 
 ```python
 ib.tl.ibex(mdata, chain="Heavy", method="geometric", key_added="X_ibex_heavy")
-``` -->
+``` 
+-->
 
 If you only have a list of sequences (e.g. from a custom pipeline), use the low-level function directly:
 
