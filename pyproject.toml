@@ -1,6 +1,6 @@
 [project]
 name = "scibex"
-version = "0.1.0b1"
+version = "0.1.0b2"
 description = "Python interface to the Ibex BCR embedding R package for scverse single-cell analysis"
 readme = "README.md"
 authors = [
