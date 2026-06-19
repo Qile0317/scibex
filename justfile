@@ -66,9 +66,10 @@ build:
     rm -rf dist
     uv build
 
-# Serve the docs locally with live reload at localhost:8000
+# Build and serve the docs at localhost:8000 (notebook conversion requires a static server)
 docs-serve:
-    uv run --extra docs zensical serve
+    just docs-build
+    uv run --extra docs python -m http.server 8000 --directory site
 
 # Build the docs to site/ (for local inspection)
 docs-build:

@@ -109,7 +109,7 @@ embedding = ib.ibex_matrix(
 ## Tutorial
 
 A complete end-to-end tutorial on the Stephenson 2021 COVID-19 dataset (5k BCR cells) is available in
-[`docs/notebooks/tutorial_5k_bcr.ipynb`](docs/notebooks/tutorial_5k_bcr.ipynb).
+the [Tutorials](tutorials/) section (`docs/notebooks/tutorial_5k_bcr.ipynb`).
 
 It covers:
 

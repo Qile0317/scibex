@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-NOTE: THIS SCRIPT IS TAKEN FROM https://github.com/owid/etl/blob/master/docs/ignore/post-build/convert_notebooks.py
+NOTE: THIS SCRIPT IS MODIFIED FROM https://github.com/owid/etl/blob/master/docs/ignore/post-build/convert_notebooks.py
 
 Convert Jupyter notebooks to HTML wrapped in full Zensical theme.
 

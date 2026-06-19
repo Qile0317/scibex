@@ -5,11 +5,18 @@ site_description = "Python interface to the Ibex BCR embedding R package for scv
 site_author = "Qile Yang"
 copyright = "&copy; 2025 Qile Yang"
 repo_url = "https://github.com/Qile0317/scibex"
+nav = [
+  {Homepage = "index.md"},
+  {Installation = "installation.md"},
+  {Usage = "usage.md"},
+  {Tutorials = ["tutorials.md", {"Stephenson 2021 — 5k BCR" = "notebooks/tutorial_5k_bcr.html"}]},
+]
 
 [project.theme]
 custom_dir = "overrides"
 features = [
   "navigation.instant",
+  "navigation.indexes",
   "navigation.path",
   "navigation.top",
   "navigation.footer",
