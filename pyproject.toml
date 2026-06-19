@@ -57,8 +57,12 @@ homepage = "https://github.com/Qile0317/scibex"
 # Example override: relax a rule for the entire project (uncomment if needed).
 # rules.TY015 = "warn"  # For invalid-argument-type, warn instead of error.
 
+[tool.ty.src]
+exclude = ["scripts/"]
+
 [tool.ruff]
 line-length = 120
+exclude = ["scripts/"]
 
 [tool.ruff.lint]
 select = [
