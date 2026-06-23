@@ -9,7 +9,8 @@ nav = [
   {Homepage = "index.md"},
   {Installation = "installation.md"},
   {Usage = "usage.md"},
-  {Tutorials = ["tutorials.md", {"Stephenson 2021 — 5k BCR" = "notebooks/tutorial_5k_bcr.html"}]},
+  {Tutorials = [{Index = "tutorials.md"}, {"Stephenson 2021 — 5k BCR" = "notebooks/tutorial_5k_bcr.html"}]},
+  {Changelog = "changelog.md"},
 ]
 
 [project.theme]
