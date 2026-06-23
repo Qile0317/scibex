@@ -97,6 +97,39 @@ ib.tl.ibex(
 
 ---
 
+## Python backend
+
+By default, scibex embeds sequences by calling the Ibex R package, which
+internally launches a basilisk-managed Python subprocess to run Keras.  The
+`backend="python"` option short-circuits this chain and loads the `.keras`
+encoder files directly in the current Python process — no R, no rpy2, no
+subprocess.
+
+The Python backend is the default — no extra install required. Pass `backend="python"` explicitly or omit it:
+
+```python
+import scibex as ib
+
+seqs = ["CARDYW", "CARDSSGYW", "CARDTGYW"]
+embedding = ib.ibex_matrix(seqs, chain="Heavy", encoder_model="CNN",
+                            encoder_input="atchleyFactors", backend="python")
+```
+
+```python
+ib.tl.ibex(mdata, chain="Heavy", encoder_model="VAE", backend="python",
+           key_added="X_ibex_heavy")
+```
+
+Model files are downloaded on first use from Zenodo and cached in
+`~/.cache/R/Ibex/` — the same directory the R package uses, so a prior
+`ib.tl.ibex(..., backend="r")` call (or any previous run of the Ibex R
+package) means the weights are already local.
+
+> **Note:** `method="geometric"` is not supported with `backend="python"`.
+> Pass `method="encoder"` (the default) or use `backend="r"`.
+
+---
+
 ## Low-level: embedding a plain sequence list
 
 Use `ibex_matrix` when you have sequences from outside a scirpy AnnData:

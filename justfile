@@ -13,6 +13,11 @@ list:
 # and LD_PRELOAD is no longer needed at runtime.
 setup-r:
     uv sync --extra test
+    # Restore the project's R packages (Ibex + deps) into the renv library.
+    # The renv autoloader (.Rprofile) puts this library on .libPaths(), so
+    # rpy2's embedded R finds Ibex with no R_LIBS_USER/SCIBEX_R_LIB needed.
+    # Cached builds are symlinked, so this is fast when the renv cache is warm.
+    Rscript -e 'renv::restore(prompt = FALSE)'
     bash -c 'VIRTUAL_ENV="$(pwd)/.venv" LDFLAGS="-Wl,-rpath,$CONDA_PREFIX/lib/R/lib" uv pip install --reinstall --no-binary rpy2 rpy2'
     bash -c 'CFFI_SO="$(find "$(pwd)/.venv/lib" -name "_rinterface_cffi_api*.so" 2>/dev/null | head -1)"; [ -z "$CFFI_SO" ] && exit 0; if command -v patchelf >/dev/null 2>&1; then echo "Patching rpath: $CFFI_SO"; patchelf --force-rpath --set-rpath "$CONDA_PREFIX/lib/R/lib:$CONDA_PREFIX/lib" "$CFFI_SO"; echo "Done — rpy2 will now load conda R without LD_PRELOAD"; else echo "patchelf not found; LD_PRELOAD fallback active in just recipes"; echo "For a permanent fix: conda install -c conda-forge patchelf && just setup-r"; fi'
 

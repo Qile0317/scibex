@@ -1,5 +1,15 @@
 # History
 
+## 0.1.0b3 (2026-06-22)
+
+* `backend="python"` parameter for `scibex.ibex_matrix` and `scibex.tl.ibex` — loads Keras encoder models directly in Python, bypassing R/rpy2/basilisk. Now the default; `method="geometric"` automatically falls back to the R backend.
+* Keras and TensorFlow are now core dependencies (no longer optional).
+* `scibex.setup(lib_loc=...)` now prepends to R's `.libPaths()` so all R package lookups (Ibex, immApex, etc.) respect the custom path for all inputs.
+
+## 0.1.0b2 (2026-06-15)
+
+* Minor documentation improvements and an additional tutorial notebook.
+
 ## 0.1.0b1 (2026-06-12)
 
 * First public pre-release on PyPI.

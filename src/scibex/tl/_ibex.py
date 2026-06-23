@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from anndata import AnnData
     from muon import MuData
 
-from .._types import Chain, EncoderInput, EncoderModel, Method, Species, Strategy
+from .._types import Backend, Chain, EncoderInput, EncoderModel, Method, Species, Strategy
 
 
 def _join_exp_cdr(c1: Any, c2: Any, c3: Any, strategy: Strategy) -> str | None:
@@ -44,6 +44,7 @@ def ibex(
     *,
     fill_value: float = 0.0,
     strategy: Strategy = "lenient",
+    backend: Backend = "python",
     airr_mod: str = "airr",
     airr_key: str = "airr",
     chain_idx_key: str = "chain_indices",
@@ -117,5 +118,6 @@ def ibex(
         species=species,
         verbose=False,  # tl.ibex emits contextual warning above; avoid double-warn
         fill_value=fill_value,
+        backend=backend,
     )
     _adata.obsm[key_added] = embedding

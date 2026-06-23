@@ -8,6 +8,17 @@ pip install scibex
 uv add scibex
 ```
 
+### Python backend
+
+scibex loads encoder models directly in Python via Keras and TensorFlow, bypassing
+R / rpy2 / basilisk entirely.  These are included as core dependencies — no extra
+install step is required.
+
+If you already have JAX set up and prefer it as the Keras backend, install
+`keras>=3.6` separately and set `KERAS_BACKEND=jax`.  Note: the PyTorch backend
+cannot load the shipped models (dotted layer names; `torch` `ParameterDict` forbids
+`.`).
+
 ## R dependency
 
 scibex is a Python wrapper around the [Ibex R package](https://github.com/BorchLab/Ibex).

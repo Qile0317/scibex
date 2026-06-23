@@ -38,7 +38,7 @@ If you are proposing a feature:
 - Keep the scope as narrow as possible, to make it easier to implement.
 - Remember that this is a volunteer-driven project, and that contributions are welcome :)
 
-## Get Started!
+<!-- ## Get Started!
 
 Ready to contribute? Here's how to set up `scibex` for local development.
 
@@ -84,7 +84,7 @@ Ready to contribute? Here's how to set up `scibex` for local development.
    git push origin name-of-your-bugfix-or-feature
    ```
 
-7. Submit a pull request through the GitHub website.
+7. Submit a pull request through the GitHub website. -->
 
 ## Pull Request Guidelines
 
@@ -93,14 +93,6 @@ Before you submit a pull request, check that it meets these guidelines:
 1. The pull request should include tests.
 2. If the pull request adds functionality, the docs should be updated. Put your new functionality into a function with a docstring, and add the feature to the list in README.md.
 3. The pull request should work for Python 3.12 and 3.13. Tests run in GitHub Actions on every pull request to the main branch, make sure that the tests pass for all supported Python versions.
-
-## Tips
-
-To run a subset of tests:
-
-```sh
-pytest tests.test_scibex
-```
 
 ## Deploying
 

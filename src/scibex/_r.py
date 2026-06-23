@@ -14,21 +14,23 @@ from rpy2.robjects.packages import importr
 
 _lock = threading.Lock()
 _ibex_pkg = None
-_lib_loc: str | None = None
 
 
 def setup(lib_loc: str | None = None) -> None:
-    """Configure the R library location used when loading the Ibex package.
+    """Prepend a custom R library directory to R's ``.libPaths()``.
 
-    Call once before any ``ibex_matrix`` / ``tl.ibex`` call. If called after
-    the package has already been loaded, the cached instance is cleared and
-    the package is reloaded with the new ``lib_loc`` on the next call.
+    Call once before any ``ibex_matrix`` / ``tl.ibex`` call.  The path is
+    prepended to R's search path so every subsequent ``importr()`` call —
+    Ibex, immApex, or any other R package — finds packages there
+    automatically.  If called after packages have already been loaded, the
+    Ibex singleton is cleared and reloaded from the updated path on the next
+    call.
 
     Parameters
     ----------
     lib_loc:
-        Path to the R library directory that contains Ibex (e.g. an renv
-        library). ``None`` uses R's default ``.libPaths()``.
+        Path to prepend to R's ``.libPaths()`` (e.g. an renv library).
+        ``None`` is a no-op (useful for resetting the singleton in tests).
 
     Examples
     --------
@@ -39,9 +41,12 @@ def setup(lib_loc: str | None = None) -> None:
     >>> renv_lib = ro.r("renv::paths$library()")[0]
     >>> ib.setup(lib_loc=renv_lib)
     """
-    global _lib_loc, _ibex_pkg
+    global _ibex_pkg
     with _lock:
-        _lib_loc = lib_loc
+        if lib_loc is not None:
+            import rpy2.robjects as ro
+
+            ro.r(f'.libPaths(c("{lib_loc}", .libPaths()))')
         _ibex_pkg = None
 
 
@@ -67,5 +72,5 @@ def ibex_r():
             import rpy2.robjects as ro
 
             ro.r("reticulate::py_config()")
-            _ibex_pkg = importr("Ibex", lib_loc=_lib_loc)
+            _ibex_pkg = importr("Ibex")
     return _ibex_pkg

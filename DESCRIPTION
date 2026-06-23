@@ -1,0 +1,15 @@
+Package: scibex
+Version: 0.1.0
+Type: Project
+Imports:
+    gitcreds,
+    Biostrings (>= 2.81.3),
+    immReferent (>= 0.99.7),
+    Peptides (>= 2.4.6),
+    immApex (>= 1.5.4),
+    Ibex (>= 1.3.2)
+Remotes: 
+    BorchLab/Ibex,
+    BorchLab/immApex,
+    BorchLab/immReferent@devel,
+    Bioconductor/Biostrings

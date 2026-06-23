@@ -3,22 +3,47 @@ import os
 
 import pytest
 
-# When inside a conda env, point rpy2 at conda's R before any import touches it.
-if _conda_prefix := os.environ.get("CONDA_PREFIX"):
+# Point rpy2 at conda's R before any import touches it.  Library paths are
+# handled entirely by the project's renv: rpy2's embedded R sources scibex's
+# .Rprofile (the renv autoloader) on startup, which puts the renv library on
+# .libPaths() — so Ibex is found without any R_LIBS_USER / SCIBEX_R_LIB munging.
+# Run `just setup-r` once to restore the renv from renv.lock.
+_conda_prefix = os.environ.get("CONDA_PREFIX", "")
+if _conda_prefix:
     _conda_r_home = f"{_conda_prefix}/lib/R"
     if os.path.isdir(_conda_r_home):
         os.environ.setdefault("R_HOME", _conda_r_home)
 
-# Prevent ancestor-directory .Rprofile files (e.g. a sibling project's renv)
-# from being sourced when rpy2 initialises the embedded R runtime.
-os.environ.setdefault("R_PROFILE_USER", "/dev/null")
+# The shipped .keras models have dotted layer names that the torch backend
+# rejects, so the python-backend extra uses tensorflow.  Set all TF env vars
+# before anything imports keras — they must be set before TF dlopen's its
+# shared library, which happens at import time.
+os.environ.setdefault("KERAS_BACKEND", "tensorflow")
+os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")  # suppress C++ INFO/WARNING
+os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")  # suppress oneDNN message
 
-# Allow callers to inject an R library path (e.g. an renv library) via env var
-# before R is initialised.  Example:
-#   SCIBEX_R_LIB=/path/to/renv/library/linux-ubuntu-noble/R-4.5/x86_64 just test
-if _lib := os.environ.get("SCIBEX_R_LIB"):
-    _existing = os.environ.get("R_LIBS_USER", "")
-    os.environ["R_LIBS_USER"] = f"{_lib}:{_existing}" if _existing else _lib
+
+@pytest.fixture(scope="session")
+def require_keras_python():
+    """Skip if keras is not importable in the current Python env."""
+    try:
+        import keras  # noqa: F401
+    except ImportError:
+        pytest.skip("keras not installed (install scibex[python-backend])")
+
+
+@pytest.fixture(scope="session")
+def require_ibex_r():
+    """Skip if the Ibex R package is not installed; propagate R init errors as failures."""
+    try:
+        import rpy2.robjects as ro
+        from rpy2.robjects.packages import isinstalled
+    except ImportError:
+        pytest.skip("rpy2 not installed")
+        return
+    if not isinstalled("Ibex"):
+        libpaths = list(ro.r(".libPaths()"))  # type: ignore
+        pytest.skip(f"Ibex not found in R .libPaths(): {libpaths}")
 
 
 @pytest.fixture(scope="session", autouse=True)
