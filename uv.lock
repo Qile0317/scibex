@@ -4143,19 +4143,16 @@ wheels = [
 
 [[package]]
 name = "scibex"
-version = "0.1.0b2"
+version = "0.1.0b4"
 source = { editable = "." }
 dependencies = [
     { name = "anndata", version = "0.11.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "anndata", version = "0.12.16", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "keras", version = "3.12.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "keras", version = "3.14.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "muon" },
     { name = "rpy2" },
     { name = "scirpy", version = "0.22.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scirpy", version = "0.22.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
     { name = "scirpy", version = "0.24.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-    { name = "tensorflow" },
 ]
 
 [package.optional-dependencies]
@@ -4166,6 +4163,11 @@ docs = [
     { name = "nbconvert" },
     { name = "nbformat" },
     { name = "zensical" },
+]
+python-backend = [
+    { name = "keras", version = "3.12.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "keras", version = "3.14.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "tensorflow" },
 ]
 test = [
     { name = "coverage" },
@@ -4183,7 +4185,7 @@ requires-dist = [
     { name = "cyclopts", marker = "extra == 'docs'" },
     { name = "ipdb", marker = "extra == 'test'" },
     { name = "jupyter", marker = "extra == 'docs'" },
-    { name = "keras", specifier = ">=3.6" },
+    { name = "keras", marker = "extra == 'python-backend'", specifier = ">=3.6" },
     { name = "muon" },
     { name = "nbconvert", marker = "extra == 'docs'" },
     { name = "nbformat", marker = "extra == 'docs'" },
@@ -4191,11 +4193,11 @@ requires-dist = [
     { name = "rpy2" },
     { name = "ruff", marker = "extra == 'test'" },
     { name = "scirpy" },
-    { name = "tensorflow", specifier = ">=2.18" },
+    { name = "tensorflow", marker = "extra == 'python-backend'", specifier = ">=2.18" },
     { name = "ty", marker = "extra == 'test'" },
     { name = "zensical", marker = "extra == 'docs'" },
 ]
-provides-extras = ["docs", "test"]
+provides-extras = ["python-backend", "docs", "test"]
 
 [[package]]
 name = "scikit-learn"

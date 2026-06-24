@@ -25,10 +25,10 @@ os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")  # suppress oneDNN message
 
 @pytest.fixture(scope="session")
 def require_keras_python():
-    """Skip if keras is not importable in the current Python env."""
-    try:
-        import keras  # noqa: F401
-    except ImportError:
+    """Skip if the python-backend extra is not installed."""
+    from scibex.utils import has_python_backend
+
+    if not has_python_backend():
         pytest.skip("keras not installed (install scibex[python-backend])")
 
 

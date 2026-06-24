@@ -6,4 +6,5 @@ __email__ = "qile.yang@berkeley.edu"
 from . import tl as tl
 from ._ibex import ibex_matrix as ibex_matrix
 from ._r import setup as setup
+from .utils import has_python_backend as has_python_backend
 from .utils import install_r_deps as install_r_deps

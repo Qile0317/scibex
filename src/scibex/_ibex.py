@@ -67,7 +67,7 @@ def ibex_matrix(
     verbose: bool = False,
     *,
     fill_value: float = 0.0,
-    backend: Backend = "python",
+    backend: Backend = "r",
 ) -> np.ndarray:
     """Embed BCR sequences using Ibex.
 
@@ -79,9 +79,9 @@ def ibex_matrix(
     Parameters
     ----------
     backend:
-        ``"python"`` (default) loads the Keras model directly in the current
-        Python process (requires ``scibex[python-backend]``).
-        ``"r"`` routes through the Ibex R package + basilisk.
+        ``"r"`` (default) routes through the Ibex R package + basilisk.
+        ``"python"`` loads the Keras model directly in the current Python
+        process — requires ``pip install scibex[python-backend]``.
         ``method="geometric"`` always uses the R backend regardless of this
         parameter (geometric is not implemented in the Python backend).
     """

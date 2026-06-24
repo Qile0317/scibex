@@ -105,7 +105,13 @@ internally launches a basilisk-managed Python subprocess to run Keras.  The
 encoder files directly in the current Python process — no R, no rpy2, no
 subprocess.
 
-The Python backend is the default — no extra install required. Pass `backend="python"` explicitly or omit it:
+The Python backend is an **optional extra**.  Install it with:
+
+```bash
+pip install "scibex[python-backend]"
+```
+
+Then pass `backend="python"` explicitly:
 
 ```python
 import scibex as ib
@@ -127,6 +133,26 @@ package) means the weights are already local.
 
 > **Note:** `method="geometric"` is not supported with `backend="python"`.
 > Pass `method="encoder"` (the default) or use `backend="r"`.
+
+> **Warning — GPU conflicts:** `scibex[python-backend]` installs TensorFlow,
+> which initialises a CUDA context at import time.  If your workflow also uses
+> PyTorch, JAX, or another GPU-aware library in the same Python process, they
+> may contend for GPU memory or produce incompatible CUDA runtime errors.
+> The default `backend="r"` avoids this entirely: TensorFlow runs inside R's
+> basilisk-managed subprocess, fully isolated from the host Python environment.
+> Prefer `backend="r"` whenever you share a process with other deep learning
+> frameworks.
+
+You can programmatically check whether the extra is available:
+
+```python
+import scibex as ib
+
+if ib.has_python_backend():
+    ib.tl.ibex(mdata, chain="Heavy", backend="python", key_added="X_ibex_heavy")
+else:
+    ib.tl.ibex(mdata, chain="Heavy", backend="r", key_added="X_ibex_heavy")
+```
 
 ---
 

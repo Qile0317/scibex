@@ -5,6 +5,16 @@ import os
 _IBEX_MIN_VERSION = (1, 3, 2)
 
 
+def has_python_backend() -> bool:
+    """Return True if the optional python-backend deps (keras, tensorflow) are installed."""
+    try:
+        import keras  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
+
+
 def _installed_ibex_version() -> tuple[int, ...] | None:
     """Return the installed Ibex version as an int tuple, or None if not installed."""
     from rpy2.robjects.packages import importr, isinstalled

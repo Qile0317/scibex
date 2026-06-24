@@ -1,5 +1,12 @@
 # History
 
+## 0.1.0b4 (2026-06-23)
+
+* Default backend reverted to `"r"` for `scibex.ibex_matrix` and `scibex.tl.ibex`.
+* Keras and TensorFlow moved from core dependencies to an optional extra; install with `pip install scibex[python-backend]` to use `backend="python"`.
+* `scibex.has_python_backend()` — new utility that returns `True` when the `[python-backend]` extra is installed.
+* Documentation now warns that `backend="python"` can conflict with other GPU-using libraries (PyTorch, JAX) in the same process due to TensorFlow's CUDA context.
+
 ## 0.1.0b3 (2026-06-22)
 
 * `backend="python"` parameter for `scibex.ibex_matrix` and `scibex.tl.ibex`, loads Keras encoder models directly in Python

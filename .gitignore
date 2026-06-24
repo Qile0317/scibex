@@ -1,6 +1,3 @@
-# Local development notes (not for version control)
-README.local.md
-
 # From https://github.com/github/gitignore/blob/main/Python.gitignore 2025-07-30
 
 # Byte-compiled / optimized / DLL files
@@ -213,3 +210,4 @@ __marimo__/
 CLAUDE.md
 dev/
 .vscode/
+README.local.md

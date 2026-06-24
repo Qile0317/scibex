@@ -44,7 +44,7 @@ def ibex(
     *,
     fill_value: float = 0.0,
     strategy: Strategy = "lenient",
-    backend: Backend = "python",
+    backend: Backend = "r",
     airr_mod: str = "airr",
     airr_key: str = "airr",
     chain_idx_key: str = "chain_indices",

@@ -129,7 +129,7 @@ def test_ibex_matrix_none_fills_zeros_by_default(monkeypatch):
     """ibex_matrix fills None entries with 0.0 by default."""
     import scibex._ibex as mod
 
-    monkeypatch.setattr(mod, "_raw_embed_python", lambda seqs, **kw: np.ones((len(seqs), 4)))
+    monkeypatch.setattr(mod, "_raw_embed", lambda seqs, **kw: np.ones((len(seqs), 4)))
     from scibex import ibex_matrix
 
     result = ibex_matrix(["CARDYW", None, "CARDSSGYW"])
@@ -142,7 +142,7 @@ def test_ibex_matrix_none_fill_value_nan(monkeypatch):
     """ibex_matrix fills None entries with NaN when fill_value=nan."""
     import scibex._ibex as mod
 
-    monkeypatch.setattr(mod, "_raw_embed_python", lambda seqs, **kw: np.ones((len(seqs), 4)))
+    monkeypatch.setattr(mod, "_raw_embed", lambda seqs, **kw: np.ones((len(seqs), 4)))
     from scibex import ibex_matrix
 
     result = ibex_matrix(["CARDYW", None], fill_value=float("nan"))
@@ -155,7 +155,7 @@ def test_ibex_matrix_verbose_warns_missing(monkeypatch):
     """ibex_matrix emits UserWarning when verbose=True and any sequence is None."""
     import scibex._ibex as mod
 
-    monkeypatch.setattr(mod, "_raw_embed_python", lambda seqs, **kw: np.ones((len(seqs), 4)))
+    monkeypatch.setattr(mod, "_raw_embed", lambda seqs, **kw: np.ones((len(seqs), 4)))
     from scibex import ibex_matrix
 
     with pytest.warns(UserWarning, match="1 of 2"):
@@ -168,7 +168,7 @@ def test_ibex_matrix_no_warn_when_all_present(monkeypatch):
 
     import scibex._ibex as mod
 
-    monkeypatch.setattr(mod, "_raw_embed_python", lambda seqs, **kw: np.ones((len(seqs), 4)))
+    monkeypatch.setattr(mod, "_raw_embed", lambda seqs, **kw: np.ones((len(seqs), 4)))
     from scibex import ibex_matrix
 
     with warnings.catch_warnings():
@@ -180,7 +180,7 @@ def test_ibex_matrix_returns_full_array_shape(monkeypatch):
     """ibex_matrix always returns [N, D] where N = len(sequences) including None."""
     import scibex._ibex as mod
 
-    monkeypatch.setattr(mod, "_raw_embed_python", lambda seqs, **kw: np.ones((len(seqs), 6)))
+    monkeypatch.setattr(mod, "_raw_embed", lambda seqs, **kw: np.ones((len(seqs), 6)))
     from scibex import ibex_matrix
 
     result = ibex_matrix(["A", None, "B", None, "C"])
@@ -476,7 +476,7 @@ def test_ibex_matrix_all_none_raises(monkeypatch):
     """ibex_matrix([None, None]) raises ValueError."""
     import scibex._ibex as mod
 
-    monkeypatch.setattr(mod, "_raw_embed_python", lambda seqs, **kw: np.ones((len(seqs), 4)))
+    monkeypatch.setattr(mod, "_raw_embed", lambda seqs, **kw: np.ones((len(seqs), 4)))
     from scibex import ibex_matrix
 
     with pytest.raises(ValueError, match="All sequences are None"):
@@ -487,7 +487,7 @@ def test_ibex_matrix_empty_raises(monkeypatch):
     """ibex_matrix([]) raises ValueError."""
     import scibex._ibex as mod
 
-    monkeypatch.setattr(mod, "_raw_embed_python", lambda seqs, **kw: np.ones((len(seqs), 4)))
+    monkeypatch.setattr(mod, "_raw_embed", lambda seqs, **kw: np.ones((len(seqs), 4)))
     from scibex import ibex_matrix
 
     with pytest.raises(ValueError):
@@ -498,7 +498,7 @@ def test_ibex_matrix_single_sequence(monkeypatch):
     """ibex_matrix with one sequence returns shape (1, D)."""
     import scibex._ibex as mod
 
-    monkeypatch.setattr(mod, "_raw_embed_python", lambda seqs, **kw: np.ones((len(seqs), 5)))
+    monkeypatch.setattr(mod, "_raw_embed", lambda seqs, **kw: np.ones((len(seqs), 5)))
     from scibex import ibex_matrix
 
     result = ibex_matrix(["CARDYW"])
@@ -511,7 +511,7 @@ def test_ibex_matrix_verbose_false_no_warn_with_nones(monkeypatch):
 
     import scibex._ibex as mod
 
-    monkeypatch.setattr(mod, "_raw_embed_python", lambda seqs, **kw: np.ones((len(seqs), 4)))
+    monkeypatch.setattr(mod, "_raw_embed", lambda seqs, **kw: np.ones((len(seqs), 4)))
     from scibex import ibex_matrix
 
     with warnings.catch_warnings():
