@@ -1,7 +1,8 @@
 # History
 
-## Development Version
+## 0.1.0b5 (2026-06-23)
 
+* Ensure full suppression of all outputs when `verbose = False`
 * Minor modifications to improve type checking
 
 ## 0.1.0b4 (2026-06-23)

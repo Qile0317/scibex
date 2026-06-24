@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import warnings
 from collections.abc import Sequence
 
@@ -7,7 +8,7 @@ import numpy as np
 import rpy2.robjects as ro
 from rpy2.robjects import StrVector, pandas2ri
 
-from ._r import ibex_r
+from ._r import ibex_r, quiet_r
 from ._types import Backend, Chain, EncoderInput, EncoderModel, Method, Species
 
 
@@ -22,18 +23,20 @@ def _raw_embed(
     verbose: bool,
 ) -> np.ndarray:
     """Call R's Ibex_matrix with a clean list of strings. No None handling."""
-    r_result = ibex_r().Ibex_matrix(
-        StrVector(sequences),
-        chain=chain,
-        method=method,
-        encoder_model=encoder_model,
-        encoder_input=encoder_input,
-        geometric_theta=geometric_theta,
-        species=species,
-        verbose=verbose,
-    )
-    with (ro.default_converter + pandas2ri.converter).context():
-        df = ro.conversion.get_conversion().rpy2py(r_result)
+    ctx = contextlib.nullcontext() if verbose else quiet_r()
+    with ctx:
+        r_result = ibex_r().Ibex_matrix(
+            StrVector(sequences),
+            chain=chain,
+            method=method,
+            encoder_model=encoder_model,
+            encoder_input=encoder_input,
+            geometric_theta=geometric_theta,
+            species=species,
+            verbose=verbose,
+        )
+        with (ro.default_converter + pandas2ri.converter).context():
+            df = ro.conversion.get_conversion().rpy2py(r_result)
     return df.to_numpy()
 
 

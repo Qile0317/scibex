@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import os
 import threading
 
@@ -74,3 +75,43 @@ def ibex_r():
             ro.r("reticulate::py_config()")
             _ibex_pkg = importr("Ibex")
     return _ibex_pkg
+
+
+@contextlib.contextmanager
+def quiet_r():
+    """Redirect all R/basilisk output (console callbacks + OS fds) to /dev/null."""
+    import sys
+
+    from rpy2.rinterface_lib import callbacks
+
+    def _noop(s: str) -> None:
+        pass
+
+    orig_print = callbacks.consolewrite_print
+    orig_warn = callbacks.consolewrite_warnerror
+    orig_msg = callbacks.showmessage
+
+    callbacks.consolewrite_print = _noop  # type: ignore
+    callbacks.consolewrite_warnerror = _noop  # type: ignore
+    callbacks.showmessage = _noop  # type: ignore
+
+    sys.stdout.flush()
+    sys.stderr.flush()
+    old_out = os.dup(1)
+    old_err = os.dup(2)
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    os.dup2(devnull, 1)
+    os.dup2(devnull, 2)
+    os.close(devnull)
+    try:
+        yield
+    finally:
+        sys.stdout.flush()
+        sys.stderr.flush()
+        os.dup2(old_out, 1)
+        os.dup2(old_err, 2)
+        os.close(old_out)
+        os.close(old_err)
+        callbacks.consolewrite_print = orig_print
+        callbacks.consolewrite_warnerror = orig_warn
+        callbacks.showmessage = orig_msg
