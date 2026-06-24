@@ -1,5 +1,9 @@
 # History
 
+## Development Version
+
+* Minor modifications to improve type checking
+
 ## 0.1.0b4 (2026-06-23)
 
 * Default backend reverted to `"r"` for `scibex.ibex_matrix` and `scibex.tl.ibex`.

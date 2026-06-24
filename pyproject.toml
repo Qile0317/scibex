@@ -48,6 +48,8 @@ test = [
     "ruff",  # linting
     "ty", # checking types
     "ipdb", # debugging
+    "keras>=3.6",
+    "tensorflow>=2.18",
 ]
 
 [project.urls]

@@ -4172,8 +4172,11 @@ python-backend = [
 test = [
     { name = "coverage" },
     { name = "ipdb" },
+    { name = "keras", version = "3.12.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "keras", version = "3.14.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pytest" },
     { name = "ruff" },
+    { name = "tensorflow" },
     { name = "ty" },
 ]
 
@@ -4186,6 +4189,7 @@ requires-dist = [
     { name = "ipdb", marker = "extra == 'test'" },
     { name = "jupyter", marker = "extra == 'docs'" },
     { name = "keras", marker = "extra == 'python-backend'", specifier = ">=3.6" },
+    { name = "keras", marker = "extra == 'test'", specifier = ">=3.6" },
     { name = "muon" },
     { name = "nbconvert", marker = "extra == 'docs'" },
     { name = "nbformat", marker = "extra == 'docs'" },
@@ -4194,6 +4198,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'test'" },
     { name = "scirpy" },
     { name = "tensorflow", marker = "extra == 'python-backend'", specifier = ">=2.18" },
+    { name = "tensorflow", marker = "extra == 'test'", specifier = ">=2.18" },
     { name = "ty", marker = "extra == 'test'" },
     { name = "zensical", marker = "extra == 'docs'" },
 ]
