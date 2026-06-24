@@ -24,6 +24,9 @@ jobs:
       with:
         r-version: 'release'
 
+    - name: Add R lib to LD_LIBRARY_PATH
+      run: echo "LD_LIBRARY_PATH=$(R RHOME)/lib:${LD_LIBRARY_PATH:-}" >> $GITHUB_ENV
+
     - uses: astral-sh/setup-uv@v5
       with:
         python-version: ${{ matrix.python-version }}
